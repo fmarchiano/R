@@ -4,7 +4,14 @@
 \alias{oncoplot}
 \title{Title: Draw Oncoplot}
 \usage{
-oncoplot(mat_filtered, anno_df, title, rm_empty_rows = FALSE)
+oncoplot(
+  mat_filtered,
+  anno_df,
+  title,
+  rm_empty_rows = FALSE,
+  keep_gene_order = FALSE,
+  related_samples = FALSE
+)
 }
 \arguments{
 \item{mat_filtered}{matrix containing relevant variants}

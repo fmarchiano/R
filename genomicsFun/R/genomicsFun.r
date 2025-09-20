@@ -196,7 +196,7 @@ make_mut_landscape = function(df, landmark){
 	variant_filtered <- as.data.frame(
 	apply(variant, c(1, 2), function(x) {
 		if (is.character(x)) {
-		x <- gsub("NotInteresting", "", x) # Remove "notInteresting"
+		x <- gsub("Not_interesting", "", x) # Remove "notInteresting"
 		x <- gsub(";;", ";", x)           # Clean up double semicolons
 		x <- gsub("^;|;$", "", x)         # Remove leading/trailing semicolons
 		}
@@ -214,7 +214,7 @@ make_mut_landscape = function(df, landmark){
 #'@param title Title of the oncoplot
 #'@param rm_empty_rows Logical, if TRUE remove empty rows (default FALSE)
 #'@export
-oncoplot = function(mat_filtered, anno_df, title,rm_empty_rows = FALSE){
+oncoplot = function(mat_filtered, anno_df, title,rm_empty_rows = FALSE, keep_gene_order = FALSE, related_samples=FALSE){
 
     # Define the original column order
     #original_column_order <- colnames(mat_filtered)
@@ -238,12 +238,12 @@ oncoplot = function(mat_filtered, anno_df, title,rm_empty_rows = FALSE){
     anno_list <- list()
     col_list <- list()
     
-	row_counts <- apply(mat_filtered != "", 1, sum)  # Count non-empty elements in each row
-    ranked_rows <- rownames(mat_filtered)[order(-row_counts)]  # Order row names by descending counts
-
-    # Ensure the order of TUMOR_SAMPLE in anno_df matches the columns of mat_filtered
-	anno_df = anno_df %>%
-    slice(match(colnames(mat_filtered), TUMOR_SAMPLE))
+	if(!keep_gene_order){
+		row_counts <- apply(mat_filtered != "", 1, sum)  # Count non-empty elements in each row
+    	ranked_rows <- rownames(mat_filtered)[order(-row_counts)]  # Order row names by descending counts
+	}else{
+		ranked_rows <- rownames(mat_filtered)
+	}
 	# save header names for top annotation
 	top_anno = colnames(anno_df)
 
@@ -316,19 +316,27 @@ oncoplot = function(mat_filtered, anno_df, title,rm_empty_rows = FALSE){
         
     # Assign colors to mutation types
     col <- structure(selected_colors, names = c('Nonsense', 'Missense', 'Splice_site', 'Inframe', 'Frameshift'))
-              
+
+	if(related_samples){
+		group_labels <- gsub("ORG|UD","",colnames(mat_filtered))
+		group_breaks <- unique(group_labels)
+	}else{
+		group_labels <- anno_df %>% pull(TUMOR_SAMPLE)
+	}
     # Plot
     p = oncoPrint(
         mat_filtered,
         alter_fun = alter_fun,
         alter_fun_is_vectorized = FALSE,
         col = col,
-        column_title = paste0("SNVs with ",title),
+        column_title = paste0("oncoprint with ",title),
         show_column_names = TRUE, 
         column_names_gp = gpar(fontsize = 8),
+		column_order = colnames(mat_filtered),
         row_order = ranked_rows,
         remove_empty_rows = rm_empty_rows,
-        top_annotation = top_annotation
+        top_annotation = top_annotation,
+		column_split = group_labels
         )
 
     return(p)
