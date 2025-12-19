@@ -1,4 +1,4 @@
-Package: consensuSV
+Package: conSV
 Title: harmonize different SVcaller output and generate a consensus choosing max overlap distance
 Version: 1.0
 Authors@R: 
